@@ -44,7 +44,8 @@ jar {
                 'Implementation-Title'  : project.name,
                 'Implementation-Version': version,
                 'Implementation-Vendor' : mod_author,
-                'Built-On-Minecraft'    : minecraft_version
+                'Built-On-Minecraft'    : minecraft_version,
+                'Automatic-Module-Name': mod_module_name
         ])
     }
 }
@@ -73,6 +74,7 @@ processResources {
             'mod_issue_tracker_url'        : mod_issue_tracker_url,
             'mod_sources_url'              : mod_sources_url,
             'credits'                      : credits,
+            'mod_module_name'              : mod_module_name,
             // 仅功能性存储有值（内嵌的钛 Lite 版本），钛自身取空串
             'titanium_version'             : project.findProperty('titanium_version') ?: '',
             'java_version'                 : java_version
