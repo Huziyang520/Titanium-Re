@@ -22,7 +22,6 @@ dependencies {
     commonResources(project(path: ':common', configuration: 'commonResources'))
 }
 
-// common 的源码在每个 loader 模块里各编译一次，产物随之进各 loader 的 jar
 tasks.named('compileJava', JavaCompile) {
     dependsOn(configurations.commonJava)
     source(configurations.commonJava)

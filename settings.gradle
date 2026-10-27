@@ -1,6 +1,5 @@
 pluginManagement {
     repositories {
-        // 国内镜像在前，官方源兜底（AGENTS.md §2）
         maven { name = 'Aliyun Public'; url = 'https://maven.aliyun.com/repository/public' }
         maven { name = 'Aliyun Gradle Plugin'; url = 'https://maven.aliyun.com/repository/gradle-plugin' }
         gradlePluginPortal()
@@ -16,7 +15,6 @@ plugins {
     id 'org.gradle.toolchains.foojay-resolver-convention' version '1.0.0'
 }
 
-// 目录名 = 分支名 = 产物标签（AGENTS.md §7）
 rootProject.name = 'titanium-26.1-26.2'
 includeBuild('build-logic')
 include('common')

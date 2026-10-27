@@ -10,7 +10,6 @@ repositories {
 
 neoForge {
     neoFormVersion = neo_form_version
-    // AT 同时服务 common 编译期与 NeoForge 运行期；Fabric 侧 accesswidener 必须逐条对照（AGENTS.md §4）
     def at = file('src/main/resources/META-INF/accesstransformer.cfg')
     if (at.exists()) {
         accessTransformers.from(at.absolutePath)
@@ -18,7 +17,6 @@ neoForge {
 }
 
 dependencies {
-    // 两端都自带 Fabric Mixin / MixinExtras，common 只做 compileOnly，不新增运行时依赖
     compileOnly('net.fabricmc:sponge-mixin:0.17.3+mixin.0.8.7')
     compileOnly(annotationProcessor('io.github.llamalad7:mixinextras-common:0.5.3'))
 }
@@ -39,7 +37,6 @@ artifacts {
     commonResources sourceSets.main.resources.sourceDirectories.singleFile
 }
 
-// mcgradleconventions loader 属性；用 matching + configureEach，避免某些变体配置不存在时报错
 def loaderAttribute = Attribute.of('io.github.mcgradleconventions.loader', String)
 ['apiElements', 'runtimeElements', 'sourcesElements', 'javadocElements'].each { variant ->
     configurations.matching { it.name == variant }.configureEach {
