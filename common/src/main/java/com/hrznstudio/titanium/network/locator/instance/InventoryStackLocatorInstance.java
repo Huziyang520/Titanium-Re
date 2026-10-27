@@ -2,7 +2,6 @@
 
 package com.hrznstudio.titanium.network.locator.instance;
 
-import com.hrznstudio.titanium.itemstack.ItemStackHarnessRegistry;
 import com.hrznstudio.titanium.network.locator.LocatorInstance;
 import com.hrznstudio.titanium.network.locator.LocatorTypes;
 import com.hrznstudio.titanium.network.locator.PlayerInventoryFinder;
@@ -27,8 +26,7 @@ public class InventoryStackLocatorInstance extends LocatorInstance {
 
     @Override
     public Optional<?> locale(Player playerEntity) {
-        return PlayerInventoryFinder.get(finder).map(playerInventoryFinder -> playerInventoryFinder.getStackGetter().apply(playerEntity, inventorySlot))
-                .map(ItemStackHarnessRegistry::createItemStackHarness).orElseGet(null);
+        return PlayerInventoryFinder.get(finder).map(playerInventoryFinder -> playerInventoryFinder.getStackGetter().apply(playerEntity, inventorySlot));
     }
 
     public int getInventorySlot() {

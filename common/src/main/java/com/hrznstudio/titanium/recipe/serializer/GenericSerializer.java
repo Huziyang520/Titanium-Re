@@ -37,7 +37,7 @@ public final class GenericSerializer {
             }
             return recipe;
         } catch (Exception e) {
-            Titanium.LOGGER.catching(e);
+            Titanium.LOGGER.error("Failed to read recipe", e);
         }
         return null;
     }
@@ -51,7 +51,7 @@ public final class GenericSerializer {
                 }
             }
         } catch (Exception e) {
-            Titanium.LOGGER.catching(e);
+            Titanium.LOGGER.error("Failed to read recipe", e);
         }
     }
 

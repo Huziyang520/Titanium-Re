@@ -2,8 +2,6 @@
 
 package com.hrznstudio.titanium.util;
 
-import com.hrznstudio.titanium._impl.TagConfig;
-import com.hrznstudio.titanium.compat.almostunified.AlmostUnifiedAdapter;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -22,6 +20,8 @@ import java.util.List;
 import java.util.stream.StreamSupport;
 
 public class TagUtil {
+
+    private static final List<String> ITEM_PREFERENCE = List.of("minecraft", "emendatusenigmatica", "immersiveengineering", "thermal", "create", "mekanism", "jaopca", "kubejs", "appliedenergistics2", "pneumaticcraft", "occultism", "tmechworks", "industrialforegoing", "botania", "quark", "pedestals");
 
     public static <T> boolean hasTag(Registry<T> registry, T type, TagKey<T> tag) {
         return StreamSupport.stream(registry.getTagOrEmpty(tag).spliterator(), false).anyMatch(h -> h.value() == type);
@@ -65,7 +65,7 @@ public class TagUtil {
     }
 
     public static ItemStack getItemWithPreference(TagKey<Item> tagKey) {
-        Item preferredItem = AlmostUnifiedAdapter.getPreferredItemForTag(tagKey);
+        Item preferredItem = null;
         if (preferredItem != null) {
             return new ItemStack(preferredItem);
         }
@@ -73,7 +73,7 @@ public class TagUtil {
         List<Item> elements = java.util.stream.StreamSupport.stream(BuiltInRegistries.ITEM.getTagOrEmpty(tagKey).spliterator(), false)
             .map(Holder::value).toList();
         if (elements.isEmpty()) return ItemStack.EMPTY;
-        for (String modid : TagConfig.ITEM_PREFERENCE) {
+        for (String modid : ITEM_PREFERENCE) {
             for (Item allElement : elements) {
                 if (BuiltInRegistries.ITEM.getKey(allElement).getNamespace().equalsIgnoreCase(modid)) return new ItemStack(allElement);
             }

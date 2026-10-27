@@ -4,6 +4,7 @@ package com.hrznstudio.titanium.block;
 
 import com.hrznstudio.titanium.block.tile.BasicTile;
 import com.hrznstudio.titanium.block.tile.ITickableBlockEntity;
+import com.hrznstudio.titanium.block.tile.ITileFactory;
 import com.hrznstudio.titanium.nbthandler.NBTManager;
 import com.hrznstudio.titanium.util.TileUtil;
 import net.minecraft.core.BlockPos;
@@ -37,7 +38,7 @@ public abstract class BasicTileBlock<T extends BasicTile<T>> extends BasicBlock 
         NBTManager.getInstance().scanTileClassForAnnotations(tileClass);
     }
 
-    public abstract BlockEntityType.BlockEntitySupplier<?> getTileEntityFactory();
+    public abstract ITileFactory<?> getTileEntityFactory();
 
     @Override
     @SuppressWarnings("deprecation")

@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
-public class NetworkHandler {
+public class NetworkHandler implements INetworkHandler {
     private final String namespace;
     private final Map<Class<? extends Message>, Identifier> ids = new HashMap<>();
     private final List<Consumer<PayloadRegistrar>> registrar = new ArrayList<>();
@@ -31,6 +31,7 @@ public class NetworkHandler {
     public NetworkHandler(String modid) {
         i = 0;
         namespace = modid;
+        NeoForgeFluidStackCodec.install();
         ModList.get().getModContainerById(modid).orElseThrow()
             .getEventBus().addListener((final RegisterPayloadHandlersEvent event) -> {
                 final var reg = event.registrar(modid)
@@ -54,8 +55,8 @@ public class NetworkHandler {
                 } catch (InstantiationException | InvocationTargetException | NoSuchMethodException | IllegalAccessException e) {
                     throw new RuntimeException(e);
                 }
-            }), (payload, context) -> payload.message.handleServerMessage(context),
-            (payload, context) -> payload.message.handleClientMessage(context)
+            }), (payload, context) -> payload.message.handleServerMessage(new NeoForgeMessageContext(context)),
+            (payload, context) -> payload.message.handleClientMessage(new NeoForgeMessageContext(context))
         ));
     }
 

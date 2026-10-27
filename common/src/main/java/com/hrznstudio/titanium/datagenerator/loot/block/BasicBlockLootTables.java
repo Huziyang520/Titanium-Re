@@ -45,8 +45,4 @@ public class BasicBlockLootTables extends BlockLootSubProvider {
             });
     }
 
-    @Override
-    protected Iterable<Block> getKnownBlocks() {
-        return blocksToProcess.get();
-    }
 }

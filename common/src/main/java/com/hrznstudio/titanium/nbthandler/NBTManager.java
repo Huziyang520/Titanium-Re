@@ -36,7 +36,6 @@ public class NBTManager {
         handlerList.add(new StringNBTHandler());
         handlerList.add(new EnumDyeColorNBTHandler());
         handlerList.add(new ItemStackHandlerNBTHandler());
-        handlerList.add(new TankNBTHandler());
         handlerList.add(new UUIDNBTHandler());
         handlerList.add(new NBTSerializableNBTHandler());
     }

@@ -7,6 +7,7 @@ import com.hrznstudio.titanium.annotation.plugin.FeaturePlugin;
 import com.hrznstudio.titanium.api.ISpecialCreativeTabItem;
 import com.hrznstudio.titanium.config.AnnotationConfigManager;
 import com.hrznstudio.titanium.event.handler.EventManager;
+import com.hrznstudio.titanium.platform.neoforge.NeoForgeRegistryHelper;
 import com.hrznstudio.titanium.plugin.PluginManager;
 import com.hrznstudio.titanium.plugin.PluginPhase;
 import com.hrznstudio.titanium.tab.TitaniumTab;
@@ -24,7 +25,6 @@ import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
-import net.neoforged.neoforge.registries.DeferredHolder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,7 +43,7 @@ public abstract class ModuleController {
         this.container = container;
         this.modPluginManager = new PluginManager(modid, FeaturePlugin.FeaturePluginType.MOD, featurePlugin -> ModList.get().isLoaded(featurePlugin.value()), true);
         this.modPluginManager.execute(PluginPhase.CONSTRUCTION);
-        this.deferredRegistryHelper = new DeferredRegistryHelper(this.modid);
+        this.deferredRegistryHelper = new NeoForgeRegistryHelper(this.modid);
         this.titaniumTabs = new ArrayList<>();
         onPreInit();
         onInit();
@@ -57,7 +57,7 @@ public abstract class ModuleController {
         configManager.add(container, type);
     }
 
-    public DeferredHolder<CreativeModeTab, CreativeModeTab> addCreativeTab(String name, Supplier<ItemStack> icon, String title, TitaniumTab tab){
+    public Supplier<CreativeModeTab> addCreativeTab(String name, Supplier<ItemStack> icon, String title, TitaniumTab tab){
         this.titaniumTabs.add(tab);
         return this.getRegistries().registerGeneric(Registries.CREATIVE_MODE_TAB, name, () -> CreativeModeTab.builder()
             .icon(icon)

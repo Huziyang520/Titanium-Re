@@ -4,6 +4,7 @@ package com.hrznstudio.titanium.config;
 
 import com.hrznstudio.titanium.annotation.config.ConfigFile;
 import com.hrznstudio.titanium.annotation.config.ConfigVal;
+import com.hrznstudio.titanium.platform.IConfigScope;
 import com.hrznstudio.titanium.util.AnnotationUtil;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.ModLoadingContext;
@@ -45,7 +46,7 @@ public class AnnotationConfigManager {
         if (!fileName.endsWith(".toml")) fileName = fileName + ".toml";
         specCache.spec = builder.build();
         specCaches.add(specCache);
-        container.registerConfig(type.type, specCache.spec, fileName);
+        container.registerConfig(ModConfig.Type.valueOf(type.type.name()), specCache.spec, fileName);
     }
 
     private void scanClass(Class configClass, ModConfigSpec.Builder builder, SpecCache specCache) {
@@ -115,29 +116,29 @@ public class AnnotationConfigManager {
     }
 
     public static class Type {
-        private ModConfig.Type type;
+        private IConfigScope type;
         private Class[] configClass;
         private String fileName;
 
-        private Type(ModConfig.Type type, Class... configClass) {
+        private Type(IConfigScope type, Class... configClass) {
             this.type = type;
             this.configClass = configClass;
             this.fileName = "";
         }
 
         public static Type client(Class... classes) {
-            return new Type(ModConfig.Type.CLIENT, classes);
+            return new Type(IConfigScope.CLIENT, classes);
         }
 
         public static Type common(Class... classes) {
-            return new Type(ModConfig.Type.COMMON, classes);
+            return new Type(IConfigScope.COMMON, classes);
         }
 
         public static Type server(Class... classes) {
-            return new Type(ModConfig.Type.SERVER, classes);
+            return new Type(IConfigScope.SERVER, classes);
         }
 
-        public static Type of(ModConfig.Type type, Class... classes) {
+        public static Type of(IConfigScope type, Class... classes) {
             return new Type(type, classes);
         }
 

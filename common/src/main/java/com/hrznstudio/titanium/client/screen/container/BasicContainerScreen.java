@@ -208,4 +208,12 @@ public class BasicContainerScreen<T extends AbstractContainerMenu> extends Abstr
         }
         return yCenter / 2 + 6;
     }
+
+    public int getGuiLeft() {
+        return this.leftPos;
+    }
+
+    public int getGuiTop() {
+        return this.topPos;
+    }
 }

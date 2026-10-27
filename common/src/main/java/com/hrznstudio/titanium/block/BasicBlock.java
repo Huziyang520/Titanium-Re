@@ -4,7 +4,7 @@ package com.hrznstudio.titanium.block;
 
 import com.hrznstudio.titanium.api.IRecipeProvider;
 import com.hrznstudio.titanium.api.raytrace.DistanceRayTraceResult;
-import com.hrznstudio.titanium.block.tile.ActiveTile;
+import com.hrznstudio.titanium.block.tile.IInventoryProvider;
 import com.hrznstudio.titanium.component.inventory.InventoryComponent;
 import com.hrznstudio.titanium.datagenerator.loot.block.BasicBlockLootTables;
 import com.hrznstudio.titanium.datagenerator.loot.block.IBlockLootTableProvider;
@@ -120,8 +120,8 @@ public abstract class BasicBlock extends Block implements IRecipeProvider, IBloc
     public NonNullList<ItemStack> getDynamicDrops(BlockState state, Level worldIn, BlockPos pos, BlockState newState, boolean isMoving) {
         NonNullList<ItemStack> stacks = NonNullList.create();
         BlockEntity tileentity = worldIn.getBlockEntity(pos);
-        if (tileentity instanceof ActiveTile && ((ActiveTile<?>) tileentity).getMultiInventoryComponent() != null) {
-            for (InventoryComponent<?> inventoryHandler : ((ActiveTile<?>) tileentity).getMultiInventoryComponent().getInventoryHandlers()) {
+        if (tileentity instanceof IInventoryProvider inventoryProvider) {
+            for (InventoryComponent<?> inventoryHandler : inventoryProvider.getInventories()) {
                 for (int i = 0; i < inventoryHandler.getSlots(); i++) {
                     stacks.add(inventoryHandler.getStackInSlot(i));
                 }
