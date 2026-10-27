@@ -78,11 +78,8 @@ processResources {
             'java_version'                 : java_version
     ]
 
-    // JSON/TOML 经 expand 后不得残留换行转义（AGENTS.md §4），这里只把真换行转成 \n 形式
-    var jsonExpandProps = expandProps.collectEntries { key, value ->
-        [(key): value instanceof String ? value.replace('
-', '\n') : value]
-    }
+    // 描述已是单行（AGENTS.md §4），JSON/TOML 直接复用同一张表，不做额外转义处理
+    def jsonExpandProps = expandProps
 
     filesMatching(['META-INF/mods.toml', 'META-INF/neoforge.mods.toml']) {
         expand expandProps

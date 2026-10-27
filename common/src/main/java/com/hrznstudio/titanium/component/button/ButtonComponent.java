@@ -1,0 +1,72 @@
+// Titanium Lite Button Component
+
+package com.hrznstudio.titanium.component.button;
+
+import com.hrznstudio.titanium.api.IFactory;
+import com.hrznstudio.titanium.api.client.IScreenAddonProvider;
+import com.hrznstudio.titanium.client.screen.addon.BasicButtonAddon;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.entity.player.Player;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.function.BiConsumer;
+
+public class ButtonComponent implements IScreenAddonProvider {
+
+    private final int posX;
+    private final int posY;
+    private final int sizeX;
+    private final int sizeY;
+    private int id;
+    private BiConsumer<Player, CompoundTag> serverPredicate;
+
+    public ButtonComponent(int posX, int posY, int sizeX, int sizeY) {
+        this.posX = posX;
+        this.posY = posY;
+        this.sizeX = sizeX;
+        this.sizeY = sizeY;
+        this.id = -1;
+    }
+
+    public ButtonComponent setPredicate(BiConsumer<Player, CompoundTag> serverPredicate) {
+        this.serverPredicate = serverPredicate;
+        return this;
+    }
+
+    public void onButtonClicked(Player entity, CompoundTag information) {
+        if (serverPredicate != null) {
+            serverPredicate.accept(entity, information);
+        }
+    }
+
+    public int getPosX() {
+        return posX;
+    }
+
+    public int getPosY() {
+        return posY;
+    }
+
+    public int getSizeX() {
+        return sizeX;
+    }
+
+    public int getSizeY() {
+        return sizeY;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public ButtonComponent setId(int id) {
+        this.id = id;
+        return this;
+    }
+
+    @Override
+    public List<IFactory<?>> getScreenAddons() {
+        return Collections.singletonList(() -> new BasicButtonAddon(this));
+    }
+}

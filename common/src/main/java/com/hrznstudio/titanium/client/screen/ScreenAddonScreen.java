@@ -1,0 +1,109 @@
+// Titanium Lite Screen Addon Screen
+
+package com.hrznstudio.titanium.client.screen;
+
+import com.hrznstudio.titanium.api.IFactory;
+import com.hrznstudio.titanium.api.client.AssetTypes;
+import com.hrznstudio.titanium.api.client.IScreenAddon;
+import com.hrznstudio.titanium.api.client.assets.types.IBackgroundAsset;
+import com.hrznstudio.titanium.client.screen.asset.IAssetProvider;
+import com.hrznstudio.titanium.util.AssetUtil;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.components.events.GuiEventListener;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.chat.Component;
+import org.lwjgl.glfw.GLFW;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+public abstract class ScreenAddonScreen extends Screen implements IScreenAddonConsumer {
+
+    public int x;
+    public int y;
+    private IAssetProvider assetProvider;
+    private List<IScreenAddon> addonList;
+    private boolean drawBackground;
+
+    private boolean isMouseDragging;
+    private int dragX;
+    private int dragY;
+
+    public ScreenAddonScreen(IAssetProvider assetProvider, boolean drawBackground) {
+        super(Component.literal(""));
+        this.assetProvider = assetProvider;
+        this.drawBackground = drawBackground;
+    }
+
+    @Override
+    public void init() {
+        super.init();
+        IBackgroundAsset background = IAssetProvider.getAsset(assetProvider, AssetTypes.BACKGROUND);
+
+        this.x = this.width / 2 - background.getArea().width / 2;
+
+        this.y = this.height / 2 - background.getArea().height / 2;
+        this.addonList = this.guiAddons().stream().map(IFactory::create).collect(Collectors.toList());
+    }
+
+    @Override
+    public void extractRenderState(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks) {
+        renderBackground(guiGraphics, mouseX, mouseY, partialTicks);
+        super.extractRenderState(guiGraphics, mouseX, mouseY, partialTicks);
+        renderForeground(guiGraphics, mouseX, mouseY, partialTicks);
+    }
+
+    public void renderBackground(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks) {
+        this.checkForMouseDrag(mouseX, mouseY);
+        if (drawBackground) {
+            super.extractBackground(guiGraphics, mouseX, mouseY, partialTicks);
+            AssetUtil.drawAsset(guiGraphics, this, assetProvider.getAsset(AssetTypes.BACKGROUND), x, y);
+        }
+        addonList.forEach(iGuiAddon -> iGuiAddon.drawBackgroundLayer(guiGraphics, this, assetProvider, x, y, mouseX, mouseY, partialTicks));
+    }
+
+    public void renderForeground(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks) {
+        addonList.forEach(iGuiAddon -> iGuiAddon.drawForegroundLayer(guiGraphics, this, assetProvider, x, y, mouseX, mouseY, partialTicks));
+        for (IScreenAddon iScreenAddon : addonList) {
+            if (iScreenAddon.isMouseOver(mouseX, mouseY) && !iScreenAddon.getTooltipLines().isEmpty()) {
+
+                guiGraphics.setComponentTooltipForNextFrame(Minecraft.getInstance().font, iScreenAddon.getTooltipLines(), mouseX, mouseY);
+            }
+        }
+    }
+
+    public abstract List<IFactory<IScreenAddon>> guiAddons();
+
+    private void checkForMouseDrag(int mouseX, int mouseY) {
+        int pressedButton = GLFW.glfwGetMouseButton(Minecraft.getInstance().getWindow().handle(), GLFW.GLFW_MOUSE_BUTTON_LEFT);
+        if (pressedButton == GLFW.GLFW_PRESS) {
+            if (!this.isDragging()) {
+                this.setDragging(true);
+            } else {
+                for (IScreenAddon iScreenAddon : this.addonList) {
+                    if (iScreenAddon.isMouseOver(mouseX, mouseY)) {
+                        iScreenAddon.mouseDragged(mouseX - x, mouseY - y, pressedButton, dragX, dragY);
+                    }
+                }
+            }
+            this.dragX = mouseX;
+            this.dragY = mouseY;
+        } else {
+            this.setDragging(false);
+        }
+    }
+
+    @Override
+    public List<IScreenAddon> getAddons() {
+        return addonList;
+    }
+
+    @Override
+    public List<? extends GuiEventListener> children() {
+        List<GuiEventListener> children = new ArrayList<>(super.children());
+        children.addAll(getAddons());
+        return children;
+    }
+}

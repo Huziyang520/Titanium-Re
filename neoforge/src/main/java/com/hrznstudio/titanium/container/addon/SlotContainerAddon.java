@@ -1,0 +1,35 @@
+// Titanium Lite Slot Container Addon
+
+package com.hrznstudio.titanium.container.addon;
+
+import com.google.common.collect.Lists;
+import net.minecraft.world.inventory.Slot;
+import net.neoforged.neoforge.transfer.item.ItemStacksResourceHandler;
+import org.apache.commons.lang3.tuple.Pair;
+
+import java.util.List;
+import java.util.function.Function;
+
+public class SlotContainerAddon implements IContainerAddon {
+    private final ItemStacksResourceHandler itemHandler;
+    private final int xPos;
+    private final int yPos;
+    private final Function<Integer, Pair<Integer, Integer>> positionFunction;
+
+    public SlotContainerAddon(ItemStacksResourceHandler itemHandler, int xPos, int yPos, Function<Integer, Pair<Integer, Integer>> positionFunction) {
+        this.itemHandler = itemHandler;
+        this.xPos = xPos;
+        this.yPos = yPos;
+        this.positionFunction = positionFunction;
+    }
+
+    @Override
+    public List<Slot> getSlots() {
+        List<Slot> slots = Lists.newArrayList();
+        for (int i = 0; i < itemHandler.size(); i++) {
+            Pair<Integer, Integer> offset = positionFunction.apply(i);
+            slots.add(new UpdatableSlotItemHandler(itemHandler, i, xPos + offset.getLeft(), yPos + offset.getRight()));
+        }
+        return slots;
+    }
+}

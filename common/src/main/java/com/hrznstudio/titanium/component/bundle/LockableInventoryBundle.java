@@ -1,0 +1,150 @@
+// Titanium Lite Lockable Inventory Bundle
+
+package com.hrznstudio.titanium.component.bundle;
+
+import com.hrznstudio.titanium.api.IFactory;
+import com.hrznstudio.titanium.api.client.AssetTypes;
+import com.hrznstudio.titanium.block.tile.BasicTile;
+import com.hrznstudio.titanium.client.screen.addon.LockableOverlayAddon;
+import com.hrznstudio.titanium.client.screen.addon.StateButtonAddon;
+import com.hrznstudio.titanium.client.screen.addon.StateButtonInfo;
+import com.hrznstudio.titanium.component.IComponentBundle;
+import com.hrznstudio.titanium.component.IComponentHandler;
+import com.hrznstudio.titanium.component.IComponentHarness;
+import com.hrznstudio.titanium.component.button.ButtonComponent;
+import com.hrznstudio.titanium.component.inventory.InventoryComponent;
+import com.hrznstudio.titanium.component.inventory.SidedInventoryComponent;
+import com.hrznstudio.titanium.container.addon.IContainerAddon;
+import com.hrznstudio.titanium.nbthandler.INBTSerializable;
+import com.hrznstudio.titanium.util.LangUtil;
+import net.minecraft.ChatFormatting;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.world.item.ItemStack;
+
+import javax.annotation.Nonnull;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.function.BiPredicate;
+
+public class LockableInventoryBundle<T extends BasicTile & IComponentHarness> implements IComponentBundle, INBTSerializable<CompoundTag> {
+
+    private InventoryComponent<T> inventory;
+    private BiPredicate<ItemStack, Integer> cachedFilter;
+    private ButtonComponent buttonAddon;
+    private T componentHarness;
+    private ItemStack[] filter;
+    private int lockPosX;
+    private int lockPosY;
+    private boolean isLocked;
+
+    public LockableInventoryBundle(T componentHarness, InventoryComponent<T> inventory, int lockPosX, int lockPosY, boolean isLocked) {
+        this.componentHarness = componentHarness;
+        this.inventory = inventory;
+        this.cachedFilter = inventory.getInsertPredicate();
+        this.filter = new ItemStack[this.inventory.getSlots()];
+        Arrays.fill(this.filter, ItemStack.EMPTY);
+        this.lockPosX = lockPosX;
+        this.lockPosY = lockPosY;
+        this.isLocked = isLocked;
+        this.buttonAddon = new ButtonComponent(lockPosX, lockPosY, 14,14){
+            @Override
+            public List<IFactory<?>> getScreenAddons() {
+                return Collections.singletonList(() -> new StateButtonAddon(buttonAddon,
+                    new StateButtonInfo(0, AssetTypes.BUTTON_UNLOCKED, ChatFormatting.GOLD + LangUtil.getString("tooltip.titanium.locks") +  ChatFormatting.WHITE +  " " + LangUtil.getString("tooltip.titanium.facing_handler." + inventory.getName().toLowerCase())),
+                    new StateButtonInfo(1, AssetTypes.BUTTON_LOCKED, ChatFormatting.GOLD + LangUtil.getString("tooltip.titanium.unlocks") + ChatFormatting.WHITE + " " + LangUtil.getString("tooltip.titanium.facing_handler." + inventory.getName().toLowerCase()))) {
+                    @Override
+                    public int getState() {
+                        return LockableInventoryBundle.this.isLocked ? 1 : 0;
+                    }
+                });
+            }
+        }.setPredicate((playerEntity, compoundNBT) -> {
+                this.isLocked = !this.isLocked;
+            for (int i = 0; i < this.inventory.getSlots(); i++) {
+                this.filter[i] = this.inventory.getStackInSlot(i).copy();
+            }
+                updateFilter();
+                this.componentHarness.syncObject(this);
+            });
+    }
+
+    @Nonnull
+    @Override
+    public List<IFactory<?>> getScreenAddons() {
+        return inventory instanceof SidedInventoryComponent ? Collections.singletonList(() -> new LockableOverlayAddon((SidedInventoryComponent) inventory, this.lockPosX, this.lockPosY)) : Collections.emptyList();
+    }
+
+    @Override
+    public void accept(IComponentHandler... handler) {
+        for (IComponentHandler iComponentHandler : handler) {
+            iComponentHandler.add(this.inventory, this.buttonAddon);
+        }
+    }
+
+    @Nonnull
+    @Override
+    public List<IFactory<? extends IContainerAddon>> getContainerAddons() {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public CompoundTag serializeNBT(HolderLookup.Provider provider) {
+        CompoundTag compoundNBT = new CompoundTag();
+        compoundNBT.put("Inventory", this.inventory.serializeNBT(provider));
+        compoundNBT.putBoolean("Locked", this.isLocked);
+        ListTag nbt = new ListTag();
+        for (ItemStack stack : this.filter) {
+            nbt.add(com.hrznstudio.titanium.util.ItemStackSerialization.save(provider, stack));
+        }
+        compoundNBT.put("Filter", nbt);
+        return compoundNBT;
+    }
+
+    @Override
+    public void deserializeNBT(HolderLookup.Provider provider, CompoundTag nbt) {
+        this.inventory.deserializeNBT(provider, nbt.getCompoundOrEmpty("Inventory"));
+        this.isLocked = nbt.getBooleanOr("Locked", false);
+        ListTag list = (ListTag) nbt.get("Filter");
+        this.filter = new ItemStack[list.size()];
+        Arrays.fill(this.filter, ItemStack.EMPTY);
+        for (int i = 0; i < list.size(); i++) {
+            this.filter[i] = com.hrznstudio.titanium.util.ItemStackSerialization.load(provider, list.getCompoundOrEmpty(i));
+        }
+        updateFilter();
+    }
+
+    private void updateFilter(){
+        if (isLocked){
+            this.inventory.setInputFilter((stack, integer) -> integer < this.filter.length && !this.filter[integer].isEmpty() && ItemStack.isSameItemSameComponents(this.filter[integer], (stack)));
+        } else {
+            Arrays.fill(this.filter, ItemStack.EMPTY);
+            this.inventory.setInputFilter(this.cachedFilter);
+        }
+        for (int i = 0; i < this.filter.length; i++) {
+            this.inventory.setSlotToItemStackRender(i, this.filter[i]);
+        }
+    }
+
+    public InventoryComponent<T> getInventory() {
+        return inventory;
+    }
+
+    public boolean isLocked() {
+        return isLocked;
+    }
+
+    public ItemStack[] getFilter() {
+        return filter;
+    }
+
+    public void setFilter(ItemStack[] filter) {
+        this.filter = filter;
+    }
+
+    public void setLocked(boolean locked) {
+        isLocked = locked;
+    }
+}

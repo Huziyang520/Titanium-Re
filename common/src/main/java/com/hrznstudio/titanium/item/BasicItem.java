@@ -1,0 +1,97 @@
+// Titanium Lite Basic Item
+
+package com.hrznstudio.titanium.item;
+
+import com.hrznstudio.titanium.module.DeferredRegistryHelper;
+import com.hrznstudio.titanium.tab.TitaniumTab;
+import net.minecraft.ChatFormatting;
+import net.minecraft.client.Minecraft;
+import net.minecraft.network.chat.Component;
+import net.minecraft.util.StringRepresentable;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.TooltipDisplay;
+import org.apache.commons.lang3.StringUtils;
+import org.lwjgl.glfw.GLFW;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Consumer;
+
+@ParametersAreNonnullByDefault
+public class BasicItem extends Item {
+
+    private TitaniumTab itemGroup = null;
+
+    public BasicItem(Properties properties) {
+        super(DeferredRegistryHelper.applyItemRegistrationId(properties));
+    }
+
+    public BasicItem(String name, Properties properties) {
+        super(DeferredRegistryHelper.applyItemRegistrationId(properties));
+    }
+
+    @Override
+    public void appendHoverText(ItemStack stack, TooltipContext worldIn, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flagIn) {
+        super.appendHoverText(stack, worldIn, display, tooltip, flagIn);
+        List<Component> lines = new ArrayList<>();
+        if (hasTooltipDetails(null)) {
+            addTooltipDetails(null, stack, lines, flagIn.isAdvanced());
+        }
+        for (Key key : Key.values()) {
+            if (hasTooltipDetails(key)) {
+                if (key.isDown()) {
+                    addTooltipDetails(key, stack, lines, flagIn.isAdvanced());
+                } else {
+                    String keyName = ChatFormatting.YELLOW + key.getSerializedName() + ChatFormatting.GRAY;
+                    lines.add(Component.literal(Component.translatable("tooltip.titanium.hold_moreinfo", keyName).getString()));
+                }
+            }
+        }
+        lines.forEach(tooltip);
+    }
+
+    public void addTooltipDetails(@Nullable Key key, ItemStack stack, List<Component> tooltip, boolean advanced) {
+
+    }
+
+    public boolean hasTooltipDetails(@Nullable Key key) {
+        return false;
+    }
+
+    public void setItemGroup(TitaniumTab itemGroup) {
+        this.itemGroup = itemGroup;
+        this.itemGroup.getTabList().add(this);
+    }
+
+    public enum Key implements StringRepresentable {
+        SHIFT(GLFW.GLFW_KEY_RIGHT_SHIFT, GLFW.GLFW_KEY_LEFT_SHIFT),
+        CTRL(GLFW.GLFW_KEY_RIGHT_CONTROL, GLFW.GLFW_KEY_LEFT_CONTROL),
+        ALT(GLFW.GLFW_KEY_RIGHT_ALT, GLFW.GLFW_KEY_LEFT_ALT);
+
+        final String name;
+        final int[] keys;
+
+        Key(int... keys) {
+            this.keys = keys;
+            this.name = name();
+        }
+
+        public boolean isDown() {
+            for (int key : keys)
+                if (GLFW.glfwGetKey(Minecraft.getInstance().getWindow().handle(), key) == GLFW.GLFW_PRESS)
+                    return true;
+            return false;
+        }
+
+        @Override
+        @Nonnull
+        public String getSerializedName() {
+            return StringUtils.capitalize(name.toLowerCase());
+        }
+    }
+}
