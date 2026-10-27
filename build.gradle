@@ -1,5 +1,4 @@
 plugins {
-    // 档位来源 MultiLoader-Template 26.3（官方模板固定值）；本机缓存与实测见 gradle/wrapper/gradle-wrapper.properties 顶部注释。
     id 'net.fabricmc.fabric-loom' version '1.18.1' apply false
     id 'net.neoforged.moddev' version '2.0.147' apply false
 }

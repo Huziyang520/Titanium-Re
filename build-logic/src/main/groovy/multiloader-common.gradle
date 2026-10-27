@@ -2,8 +2,6 @@ plugins {
     id 'java-library'
 }
 
-// 产物名：<mod_id>-<version>-<loader>-<MC 或区间>.jar（AGENTS.md §5）。
-// 版本已折进 archivesName，故 archiveVersion 必须清空，否则 Loom 的 remapJar / jar 会再追加一次。
 base {
     archivesName = "${mod_id}-${version}-${project.name}-${mc_range_label}"
 }
@@ -27,7 +25,6 @@ tasks.withType(Javadoc).configureEach {
     options.addStringOption('Xdoclint:none', '-quiet')
 }
 
-// 协议原文随每个产物分发：MIT 用 LICENSE，LGPL-3.0 用 LICENSE.md
 tasks.withType(Jar).configureEach {
     def license = ['LICENSE', 'LICENSE.md'].collect { rootProject.file(it) }.find { it.exists() }
     if (license != null) {
@@ -51,7 +48,6 @@ jar {
 }
 
 processResources {
-    // 描述里有中文，必须显式按 UTF-8 读模板，否则按平台字符集解码成乱码
     filteringCharset = 'UTF-8'
     var expandProps = [
             'version'                      : version,
@@ -75,12 +71,10 @@ processResources {
             'mod_sources_url'              : mod_sources_url,
             'credits'                      : credits,
             'mod_module_name'              : mod_module_name,
-            // 仅功能性存储有值（内嵌的钛 Lite 版本），钛自身取空串
             'titanium_version'             : project.findProperty('titanium_version') ?: '',
             'java_version'                 : java_version
     ]
 
-    // 描述已是单行（AGENTS.md §4），JSON/TOML 直接复用同一张表，不做额外转义处理
     def jsonExpandProps = expandProps
 
     filesMatching(['META-INF/mods.toml', 'META-INF/neoforge.mods.toml']) {

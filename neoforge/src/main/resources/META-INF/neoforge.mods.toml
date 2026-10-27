@@ -7,7 +7,6 @@ modId = "${mod_id}"
 version = "${version}"
 displayName = "${mod_name}"
 authors = "${mod_author}"
-# 26.1-26.2 一条线跨了 icon 槽位改名：两行都写，各版本只读自己认识的那个（AGENTS.md §4）
 iconFile="${mod_id}.png"
 displayURL = "${mod_display_url}"
 issueTrackerURL = "${mod_issue_tracker_url}"
