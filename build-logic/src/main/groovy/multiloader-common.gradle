@@ -1,0 +1,94 @@
+plugins {
+    id 'java-library'
+}
+
+// 产物名：<mod_id>-<version>-<loader>-<MC 或区间>.jar（AGENTS.md §5）。
+// 版本已折进 archivesName，故 archiveVersion 必须清空，否则 Loom 的 remapJar / jar 会再追加一次。
+base {
+    archivesName = "${mod_id}-${version}-${project.name}-${mc_range_label}"
+}
+
+tasks.withType(AbstractArchiveTask).configureEach {
+    archiveVersion = ''
+}
+
+java {
+    toolchain.languageVersion = JavaLanguageVersion.of(java_version)
+    withSourcesJar()
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.compilerArgs << '-Xmaxerrs' << '5000'
+}
+
+tasks.withType(Javadoc).configureEach {
+    options.encoding = 'UTF-8'
+    options.addStringOption('Xdoclint:none', '-quiet')
+}
+
+// 协议原文随每个产物分发：MIT 用 LICENSE，LGPL-3.0 用 LICENSE.md
+tasks.withType(Jar).configureEach {
+    def license = ['LICENSE', 'LICENSE.md'].collect { rootProject.file(it) }.find { it.exists() }
+    if (license != null) {
+        from(license)
+    }
+}
+
+jar {
+    manifest {
+        attributes([
+                'Specification-Title'   : mod_name,
+                'Specification-Vendor'  : mod_author,
+                'Specification-Version' : version,
+                'Implementation-Title'  : project.name,
+                'Implementation-Version': version,
+                'Implementation-Vendor' : mod_author,
+                'Built-On-Minecraft'    : minecraft_version
+        ])
+    }
+}
+
+processResources {
+    // 描述里有中文，必须显式按 UTF-8 读模板，否则按平台字符集解码成乱码
+    filteringCharset = 'UTF-8'
+    var expandProps = [
+            'version'                      : version,
+            'group'                        : project.group,
+            'minecraft_version'            : minecraft_version,
+            'minecraft_version_range'      : minecraft_version_range,
+            'fabric_minecraft_range'       : fabric_minecraft_range,
+            'mc_range_label'               : mc_range_label,
+            'fabric_version'               : fabric_version,
+            'fabric_loader_version'        : fabric_loader_version,
+            'mod_name'                     : mod_name,
+            'mod_author'                   : mod_author,
+            'mod_id'                       : mod_id,
+            'license'                      : license,
+            'description'                  : project.description,
+            'neoforge_version'             : neoforge_version,
+            'neoforge_version_range'       : neoforge_version_range,
+            'neoforge_loader_version_range': neoforge_loader_version_range,
+            'mod_display_url'              : mod_display_url,
+            'mod_issue_tracker_url'        : mod_issue_tracker_url,
+            'mod_sources_url'              : mod_sources_url,
+            'credits'                      : credits,
+            // 仅功能性存储有值（内嵌的钛 Lite 版本），钛自身取空串
+            'titanium_version'             : project.findProperty('titanium_version') ?: '',
+            'java_version'                 : java_version
+    ]
+
+    // JSON/TOML 经 expand 后不得残留换行转义（AGENTS.md §4），这里只把真换行转成 \n 形式
+    var jsonExpandProps = expandProps.collectEntries { key, value ->
+        [(key): value instanceof String ? value.replace('
+', '\n') : value]
+    }
+
+    filesMatching(['META-INF/mods.toml', 'META-INF/neoforge.mods.toml']) {
+        expand expandProps
+    }
+    filesMatching(['pack.mcmeta', 'fabric.mod.json', '*.mixins.json']) {
+        expand jsonExpandProps
+    }
+    inputs.properties(expandProps)
+}

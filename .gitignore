@@ -1,0 +1,32 @@
+# gradle
+.gradle/
+build/
+*/build/
+build-logic/.gradle/
+build-logic/build/
+
+# ide
+.idea/
+*.iml
+.vscode/
+*.ipr
+*.iws
+out/
+
+# 运行目录（开发用，不是实例）
+runs/
+*/runs/
+run/
+
+# 上游只读基线：不入库，见 文档包/开发Plan-26X.md
+_baseline/
+
+# 本地依赖产物（钛 Lite 的 jar 等）：不入库
+libs/
+common/libs/
+
+# 日志
+*.log
+logs/
+hs_err_pid*.log
+replay_pid*.log
