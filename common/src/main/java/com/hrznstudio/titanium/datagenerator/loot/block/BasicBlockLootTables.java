@@ -36,7 +36,7 @@ public class BasicBlockLootTables extends BlockLootSubProvider {
     }
 
     @Override
-    protected void generate() {
+    public void generate() {
         blocksToProcess.get()
             .forEach(block -> {
                 if (block instanceof IBlockLootTableProvider) {
