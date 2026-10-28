@@ -46,7 +46,7 @@ public class AnnotationConfigManager {
         if (!fileName.endsWith(".toml")) fileName = fileName + ".toml";
         specCache.spec = builder.build();
         specCaches.add(specCache);
-        container.registerConfig(ModConfig.Type.valueOf(type.type.name()), specCache.spec, fileName);
+        container.registerConfig(toModConfigType(type.type), specCache.spec, fileName);
     }
 
     private void scanClass(Class configClass, ModConfigSpec.Builder builder, SpecCache specCache) {
@@ -157,5 +157,22 @@ public class AnnotationConfigManager {
         public ModConfigSpec spec;
         public HashMap<Field, ModConfigSpec.ConfigValue> cachedConfigValues = new HashMap<>();
 
+    }
+
+    private static ModConfig.Type toModConfigType(com.hrznstudio.titanium.platform.IConfigScope scope) {
+        return switch (scope) {
+            case STARTUP -> ModConfig.Type.STARTUP;
+            case CLIENT -> ModConfig.Type.CLIENT;
+            case COMMON -> byName("LOCAL", "COMMON");
+            case SERVER -> byName("SYNCED", "SERVER");
+        };
+    }
+
+    private static ModConfig.Type byName(String preferred, String fallback) {
+        try {
+            return ModConfig.Type.valueOf(preferred);
+        } catch (IllegalArgumentException ignored) {
+            return ModConfig.Type.valueOf(fallback);
+        }
     }
 }
