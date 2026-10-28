@@ -1,0 +1,37 @@
+// Titanium Lite Recipe Util
+
+package com.hrznstudio.titanium.util;
+
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.*;
+import net.minecraft.world.level.Level;
+
+import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
+
+public class RecipeUtil {
+
+    public static <T extends Recipe<?>> List<T> getRecipes(Level world, RecipeType<T> recipeType) {
+        if (world.recipeAccess() instanceof RecipeManager recipeManager) {
+            return recipeManager.getRecipes().stream()
+                .map(RecipeHolder::value)
+                .filter(recipe -> recipe.getType() == recipeType)
+                .map(recipe -> (T) recipe)
+                .collect(Collectors.toList());
+        }
+        return new ArrayList<>();
+    }
+
+    public static Collection<SmeltingRecipe> getCookingRecipes(Level world) {
+        return getRecipes(world, RecipeType.SMELTING);
+    }
+
+    @Nullable
+    public static SmeltingRecipe getSmelingRecipeFor(Level world, ItemStack stack) {
+        return getCookingRecipes(world).stream().filter(furnaceRecipe -> furnaceRecipe.input().test(stack)).findFirst().orElse(null);
+    }
+
+}

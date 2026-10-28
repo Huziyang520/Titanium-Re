@@ -1,0 +1,110 @@
+// Titanium Lite Widget Screen Addon
+
+package com.hrznstudio.titanium.client.screen.addon;
+
+import com.hrznstudio.titanium.client.screen.asset.IAssetProvider;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.input.CharacterEvent;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.input.MouseButtonInfo;
+
+public class WidgetScreenAddon extends BasicScreenAddon {
+
+    private final AbstractWidget widget;
+
+    public WidgetScreenAddon(int posX, int posY, AbstractWidget widget) {
+        super(posX, posY);
+        this.widget = widget;
+    }
+
+    @Override
+    public void init(int screenX, int screenY) {
+        this.widget.setX(screenX + getPosX());
+        this.widget.setY(screenY + getPosY());
+    }
+
+    @Override
+    public void drawBackgroundLayer(GuiGraphicsExtractor guiGraphics, Screen screen, IAssetProvider provider, int guiX, int guiY, int mouseX, int mouseY, float partialTicks) {
+    }
+
+    @Override
+    public void drawForegroundLayer(GuiGraphicsExtractor guiGraphics, Screen screen, IAssetProvider provider, int guiX, int guiY, int mouseX, int mouseY, float partialTicks) {
+        widget.setX(getPosX());
+        widget.setY(getPosY());
+        widget.extractRenderState(guiGraphics, mouseX, mouseY, partialTicks);
+        widget.setX(guiX + getPosX());
+        widget.setY(guiY + getPosY());
+    }
+
+    @Override
+    public int getXSize() {
+        return widget.getWidth();
+    }
+
+    @Override
+    public int getYSize() {
+        return widget.getHeight();
+    }
+
+    @Override
+    public void mouseMoved(double xPos, double yPos) {
+        widget.mouseMoved(xPos, yPos);
+    }
+
+    @Override
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        return widget.mouseClicked(new MouseButtonEvent(mouseX, mouseY, new MouseButtonInfo(button, 0)), false);
+    }
+
+    @Override
+    public boolean mouseReleased(double mouseX, double mouseY, int button) {
+        return widget.mouseReleased(new MouseButtonEvent(mouseX, mouseY, new MouseButtonInfo(button, 0)));
+    }
+
+    @Override
+    public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
+        return widget.mouseDragged(new MouseButtonEvent(mouseX, mouseY, new MouseButtonInfo(button, 0)), dragX, dragY);
+    }
+
+    @Override
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+        return widget.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
+    }
+
+    @Override
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        return widget.keyPressed(new KeyEvent(keyCode, scanCode, modifiers));
+    }
+
+    @Override
+    public boolean keyReleased(int keyCode, int scanCode, int modifiers) {
+        return widget.keyReleased(new KeyEvent(keyCode, scanCode, modifiers));
+    }
+
+    @Override
+    public boolean charTyped(char codePoint, int modifiers) {
+        return widget.charTyped(new CharacterEvent(codePoint));
+    }
+
+    @Override
+    public boolean isFocused() {
+        return widget.isFocused();
+    }
+
+    @Override
+    public void setFocused(boolean focus) {
+        widget.setFocused(focus);
+    }
+
+    @Override
+    public boolean isMouseOver(double mouseX, double mouseY) {
+        return mouseX > this.getPosX() && mouseX < this.getPosX() + getXSize() && mouseY > this.getPosY() && mouseY < this.getPosY() + getYSize();
+    }
+
+    public AbstractWidget getWidget() {
+        return widget;
+    }
+}

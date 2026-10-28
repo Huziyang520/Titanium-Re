@@ -1,0 +1,61 @@
+// Titanium Lite Basic Screen Addon
+
+package com.hrznstudio.titanium.client.screen.addon;
+
+import com.hrznstudio.titanium.api.client.IScreenAddon;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+
+public abstract class BasicScreenAddon implements IScreenAddon {
+
+    private int posX;
+    private int posY;
+    private boolean isFocused;
+
+    protected BasicScreenAddon(int posX, int posY) {
+        this.posX = posX;
+        this.posY = posY;
+        this.isFocused = false;
+    }
+
+    @Override
+    public boolean isMouseOver(double mouseX, double mouseY) {
+        Screen screen = Minecraft.getInstance().gui.screen();
+        if (screen instanceof com.hrznstudio.titanium.client.screen.container.BasicContainerScreen<?> containerScreen) {
+            mouseX -= containerScreen.getGuiLeft();
+            mouseY -= containerScreen.getGuiTop();
+        }
+        return mouseX >= this.getPosX() && mouseX <= this.getPosX() + getXSize() && mouseY >= this.getPosY() && mouseY <= this.getPosY() + getYSize();
+    }
+
+    public abstract int getXSize();
+
+    public abstract int getYSize();
+
+    public int getPosX() {
+        return posX;
+    }
+
+    public void setPosX(int posX) {
+        this.posX = posX;
+    }
+
+    public int getPosY() {
+        return posY;
+    }
+
+    public void setPosY(int posY) {
+        this.posY = posY;
+    }
+
+    @Override
+    public boolean isFocused() {
+        return this.isFocused;
+    }
+
+    @Override
+    public void setFocused(boolean p_265728_) {
+        this.isFocused = p_265728_;
+    }
+}

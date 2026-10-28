@@ -1,0 +1,52 @@
+// Titanium Lite Multi Button Component
+
+package com.hrznstudio.titanium.component.button;
+
+import com.hrznstudio.titanium.api.IFactory;
+import com.hrznstudio.titanium.api.client.IScreenAddonProvider;
+import com.hrznstudio.titanium.component.IComponentHandler;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.entity.player.Player;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+public class MultiButtonComponent implements IScreenAddonProvider, IComponentHandler {
+
+    private List<ButtonComponent> basicButtonAddons;
+
+    public MultiButtonComponent() {
+        basicButtonAddons = new ArrayList<>();
+    }
+
+    public void clickButton(int id, Player playerEntity, CompoundTag compound) {
+        basicButtonAddons.stream()
+            .filter(buttonAddon -> buttonAddon.getId() == id)
+            .forEach(buttonAddon -> buttonAddon.onButtonClicked(playerEntity, compound));
+    }
+
+    @Override
+    public List<IFactory<?>> getScreenAddons() {
+        List<IFactory<?>> addons = new ArrayList<>();
+        for (ButtonComponent basicButtonAddon : basicButtonAddons) {
+            List<IFactory<?>> addon = basicButtonAddon.getScreenAddons();
+            if (addon != null) addons.addAll(addon);
+        }
+        return addons;
+    }
+
+    @Override
+    public void add(Object... component) {
+        Arrays.stream(component).filter(this::accepts).map(o -> (ButtonComponent) o).forEach(buttonComponent -> {
+            if (buttonComponent.getId() == -1) {
+                buttonComponent.setId(basicButtonAddons.size());
+            }
+            basicButtonAddons.add(buttonComponent);
+        });
+    }
+
+    private boolean accepts(Object component) {
+        return component instanceof ButtonComponent;
+    }
+}

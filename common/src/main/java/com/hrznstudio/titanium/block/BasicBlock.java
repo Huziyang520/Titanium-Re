@@ -1,0 +1,142 @@
+// Titanium Lite Basic Block
+
+package com.hrznstudio.titanium.block;
+
+import com.hrznstudio.titanium.api.IRecipeProvider;
+import com.hrznstudio.titanium.api.raytrace.DistanceRayTraceResult;
+import com.hrznstudio.titanium.block.tile.IInventoryProvider;
+import com.hrznstudio.titanium.component.inventory.InventoryComponent;
+import com.hrznstudio.titanium.datagenerator.loot.block.BasicBlockLootTables;
+import com.hrznstudio.titanium.datagenerator.loot.block.IBlockLootTableProvider;
+import com.hrznstudio.titanium.module.DeferredRegistryHelper;
+import com.hrznstudio.titanium.tab.TitaniumTab;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.NonNullList;
+import net.minecraft.data.recipes.RecipeOutput;
+import net.minecraft.world.Containers;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.loot.LootTable;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.shapes.BooleanOp;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.phys.shapes.VoxelShape;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+public abstract class BasicBlock extends Block implements IRecipeProvider, IBlockLootTableProvider {
+    private TitaniumTab itemGroup = null;
+
+    public BasicBlock(Properties properties) {
+        super(DeferredRegistryHelper.applyBlockRegistrationId(properties));
+    }
+
+    @Nullable
+    protected static DistanceRayTraceResult rayTraceBox(BlockPos pos, Vec3 start, Vec3 end, VoxelShape shape) {
+        BlockHitResult bbResult = shape.clip(start, end, pos);
+        if (bbResult != null) {
+            Vec3 hitVec = bbResult.getLocation();
+            Direction sideHit = bbResult.getDirection();
+            double dist = start.distanceTo(hitVec);
+            return new DistanceRayTraceResult(hitVec, sideHit, pos, shape, dist);
+        }
+        return null;
+    }
+
+    @Override
+    @Nonnull
+    @SuppressWarnings("deprecation")
+    public VoxelShape getCollisionShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext selectionContext) {
+        if (hasCustomBoxes(state, world, pos)) {
+            VoxelShape shape = Shapes.empty();
+            for (VoxelShape shape1 : getBoundingBoxes(state, world, pos)) {
+                shape = Shapes.join(shape, shape1, BooleanOp.OR);
+            }
+            return shape;
+        }
+        return super.getCollisionShape(state, world, pos, selectionContext);
+    }
+
+    public List<VoxelShape> getBoundingBoxes(BlockState state, BlockGetter source, BlockPos pos) {
+        return Collections.emptyList();
+    }
+
+    public boolean hasCustomBoxes(BlockState state, BlockGetter source, BlockPos pos) {
+        return false;
+    }
+
+    @Nullable
+    protected HitResult rayTraceBoxesClosest(Vec3 start, Vec3 end, BlockPos pos, List<VoxelShape> boxes) {
+        List<DistanceRayTraceResult> results = new ArrayList<>();
+        for (VoxelShape box : boxes) {
+            DistanceRayTraceResult hit = rayTraceBox(pos, start, end, box);
+            if (hit != null)
+                results.add(hit);
+        }
+        HitResult closestHit = null;
+        double curClosest = Double.MAX_VALUE;
+        for (DistanceRayTraceResult hit : results) {
+            if (curClosest > hit.getDistance()) {
+                closestHit = hit;
+                curClosest = hit.getDistance();
+            }
+        }
+        return closestHit;
+    }
+
+    public TitaniumTab getItemGroup() {
+        return itemGroup;
+    }
+
+    public void setItemGroup(TitaniumTab itemGroup) {
+        this.itemGroup = itemGroup;
+    }
+
+    @Override
+    public void registerRecipe(RecipeOutput output) {
+
+    }
+
+    @Override
+    @SuppressWarnings("deprecation")
+    protected void affectNeighborsAfterRemoval(BlockState state, net.minecraft.server.level.ServerLevel worldIn, BlockPos pos, boolean isMoving) {
+        Containers.dropContents(worldIn, pos, getDynamicDrops(state, worldIn, pos, net.minecraft.world.level.block.Blocks.AIR.defaultBlockState(), isMoving));
+        worldIn.updateNeighbourForOutputSignal(pos, this);
+        super.affectNeighborsAfterRemoval(state, worldIn, pos, isMoving);
+    }
+
+    public NonNullList<ItemStack> getDynamicDrops(BlockState state, Level worldIn, BlockPos pos, BlockState newState, boolean isMoving) {
+        NonNullList<ItemStack> stacks = NonNullList.create();
+        BlockEntity tileentity = worldIn.getBlockEntity(pos);
+        if (tileentity instanceof IInventoryProvider inventoryProvider) {
+            for (InventoryComponent<?> inventoryHandler : inventoryProvider.getInventories()) {
+                for (int i = 0; i < inventoryHandler.getSlots(); i++) {
+                    stacks.add(inventoryHandler.getStackInSlot(i));
+                }
+            }
+        }
+        return stacks;
+    }
+
+    public boolean hasIndividualRenderVoxelShape() {
+        return false;
+    }
+
+    @Override
+    public LootTable.Builder getLootTable(@Nonnull BasicBlockLootTables blockLootTables) {
+        return blockLootTables.droppingSelf(this);
+    }
+
+}

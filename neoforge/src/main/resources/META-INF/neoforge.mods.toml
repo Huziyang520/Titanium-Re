@@ -8,6 +8,7 @@ version = "${version}"
 displayName = "${mod_name}"
 authors = "${mod_author}"
 iconFile="${mod_id}.png"
+logoFile="${mod_id}.png"
 displayURL = "${mod_display_url}"
 issueTrackerURL = "${mod_issue_tracker_url}"
 description = '''${description}'''
