@@ -47,6 +47,12 @@ public abstract class DeferredRegistryHelper implements IRegistryHelper {
         return this.modId;
     }
 
+    public <T> net.minecraft.core.Holder<T> registerHolder(ResourceKey<? extends Registry<T>> key, String name, Supplier<T> supplier) {
+        return createHolder(key, name, supplier);
+    }
+
+    protected abstract <T> net.minecraft.core.Holder<T> createHolder(ResourceKey<? extends Registry<T>> key, String name, Supplier<T> supplier);
+
     protected abstract <T> Supplier<T> createRegistration(ResourceKey<? extends Registry<T>> key, String name, Supplier<T> supplier);
 
     protected <T> void onRegistered(ResourceKey<? extends Registry<T>> key, Supplier<T> registered) {

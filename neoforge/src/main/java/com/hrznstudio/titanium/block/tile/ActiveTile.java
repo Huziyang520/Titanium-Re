@@ -315,6 +315,10 @@ public abstract class ActiveTile<T extends ActiveTile<T>> extends BasicTile<T> i
             : this.multiInventoryComponent.getCapabilityForSide(FacingUtil.getFacingRelative(this.getFacingDirection(), direction)).orElse(null);
     }
 
+    public ResourceHandler<net.neoforged.neoforge.transfer.fluid.FluidResource> getFluidHandler(@Nullable Direction direction) {
+        return null;
+    }
+
     public MultiFilterComponent getMultiFilterComponent() {
         return this.multiFilterComponent;
     }

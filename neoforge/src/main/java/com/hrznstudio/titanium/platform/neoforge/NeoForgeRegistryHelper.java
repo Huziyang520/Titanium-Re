@@ -54,6 +54,14 @@ public final class NeoForgeRegistryHelper extends DeferredRegistryHelper {
                     return null;
                 }
             );
+            event.registerBlockEntity(
+                net.neoforged.neoforge.capabilities.Capabilities.Fluid.BLOCK, type.get(), (object, context) -> {
+                    if (object instanceof ActiveTile<?> tile) {
+                        return tile.getFluidHandler(context);
+                    }
+                    return null;
+                }
+            );
         });
     }
 
@@ -71,5 +79,10 @@ public final class NeoForgeRegistryHelper extends DeferredRegistryHelper {
     @Override
     protected BlockEntityType<?> createBlockEntityType(ITileFactory<?> factory, Block block) {
         return new BlockEntityType<>((pos, state) -> factory.create(pos, state), java.util.Set.of(block));
+    }
+
+    @Override
+    protected <T> net.minecraft.core.Holder<T> createHolder(ResourceKey<? extends Registry<T>> key, String name, Supplier<T> supplier) {
+        return getRegistry(key).register(name, supplier);
     }
 }
