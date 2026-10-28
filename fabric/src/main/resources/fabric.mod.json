@@ -32,6 +32,10 @@
   },
   "custom": {
     "modmenu": {
+      "parent": "functionalstorage",
+      "badges": [
+        "library"
+      ],
       "links": {
         "modmenu.titanium.feedback": "https://github.com/Huziyang520/Titanium-Re/issues",
         "modmenu.titanium.backup_feedback": "https://issue.mengcai.online/"
